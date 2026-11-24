@@ -3,7 +3,7 @@ import { S, $, clamp, store } from './state.js';
 import { loadLevels, renderLevels } from './levels.js';
 import { loadTakers, renderTakers } from './takers.js';
 import { makeShot } from './physics.js';
-import { draw, proj } from './render.js';
+import { draw, pickAim } from './render.js';
 
 const c = $('c');
 
@@ -40,7 +40,7 @@ $('fStart').onclick = () => {
 
 // ----- Alur ronde -----
 function startMission(i) { S.mode = 'mission'; S.lvIdx = i; S.cfg = S.levels[i]; begin() }
-function begin() { S.goals = 0; S.used = 0; show(''); $('tkName').textContent = `#${S.tk.number} ${S.tk.name}`; newShot() }
+function begin() { S.goals = 0; S.used = 0; show(''); $('tkName').textContent = `${S.tk.number !== '' ? '#' + S.tk.number + ' ' : ''}${S.tk.name}`; newShot() }
 function newShot() {
   S.phase = 'aim'; S.shot = null; S.t = 0; S.k0 = S.cfg.keeper ? (Math.random() - .5) * 1.6 : 0; S.aim = { x: 0, y: 1.2 };
   $('bKick').disabled = false; info();
@@ -51,7 +51,7 @@ function info() {
 }
 function fire() {
   if (S.phase !== 'aim') return;
-  S.phase = 'fly'; $('bKick').disabled = true; S.shot = makeShot(S.meter, +$('curve').value);
+  S.phase = 'fly'; $('bKick').disabled = true; S.t = -.3; S.shot = makeShot(S.meter, +$('curve').value);
 }
 $('bKick').onclick = fire;
 addEventListener('keydown', e => { if (e.code === 'Space' && !$('hud').hidden) { e.preventDefault(); fire() } });
@@ -77,8 +77,7 @@ $('eRetry').onclick = () => startMission(S.lvIdx);
 // ----- Bidikan -----
 const aimAt = e => {
   if (S.phase !== 'aim' || !e.buttons) return;
-  const r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * 480, py = (e.clientY - r.top) / r.height * 720, s = proj.F / (S.cfg.dist - proj.CZ);
-  S.aim.x = clamp((px - proj.CX) / s, -5.2, 5.2); S.aim.y = clamp(proj.CH - (py - proj.HY) / s, 0, 3.8);
+  const p = pickAim(e); if (p) { S.aim.x = p.x; S.aim.y = p.y }
 };
 c.onpointerdown = c.onpointermove = aimAt;
 
