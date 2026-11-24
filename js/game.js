@@ -40,7 +40,7 @@ $('fStart').onclick = () => {
 
 // ----- Alur ronde -----
 function startMission(i) { S.mode = 'mission'; S.lvIdx = i; S.cfg = S.levels[i]; begin() }
-function begin() { S.goals = 0; S.used = 0; show(''); $('tkName').textContent = S.tk.name; newShot() }
+function begin() { S.goals = 0; S.used = 0; show(''); $('tkName').textContent = `#${S.tk.number} ${S.tk.name}`; newShot() }
 function newShot() {
   S.phase = 'aim'; S.shot = null; S.t = 0; S.k0 = S.cfg.keeper ? (Math.random() - .5) * 1.6 : 0; S.aim = { x: 0, y: 1.2 };
   $('bKick').disabled = false; info();
@@ -76,17 +76,16 @@ $('eRetry').onclick = () => startMission(S.lvIdx);
 
 // ----- Bidikan -----
 const aimAt = e => {
-  if (S.phase !== 'aim') return;
-  if (e.type === 'pointermove' && !e.buttons && e.pointerType !== 'mouse') return;
+  if (S.phase !== 'aim' || !e.buttons) return;
   const r = c.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * 480, py = (e.clientY - r.top) / r.height * 720, s = proj.F / (S.cfg.dist - proj.CZ);
-  S.aim.x = clamp(S.cfg.x + (px - proj.CX) / s, -5.2, 5.2); S.aim.y = clamp(proj.CH - (py - proj.HY) / s, 0, 3.8);
+  S.aim.x = clamp((px - proj.CX) / s, -5.2, 5.2); S.aim.y = clamp(proj.CH - (py - proj.HY) / s, 0, 3.8);
 };
 c.onpointerdown = c.onpointermove = aimAt;
 
 // ----- Loop -----
 let last = 0;
 function loop(now) {
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const dt = Math.min(.05, (now - last) / 1000); last = now; S.now = now;
   if (S.phase === 'aim') { S.meter = (1 - Math.cos(now / 450)) / 2; document.querySelector('#meter i').style.width = S.meter * 100 + '%' }
   if (S.phase === 'fly') { S.t += dt; if (S.t > S.shot.end) finish() }
   if (S.cfg && (!$('hud').hidden || S.phase === 'end')) draw();
