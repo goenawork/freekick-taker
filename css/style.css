@@ -38,3 +38,5 @@ button{font:inherit;color:inherit;cursor:pointer}
 #ctl{left:50%;right:auto;width:min(100%,520px);transform:translateX(-50%)}
 #msg{position:absolute;top:28%;left:0;right:0;text-align:center;font:800 3.2rem 'Barlow Condensed',Impact,sans-serif;color:var(--chalk);text-shadow:0 2px 8px #000;pointer-events:none}
 #msg.goal{color:var(--amber)}
+#meter{position:relative}
+#meter::after{content:'';position:absolute;left:50%;width:20%;top:0;bottom:0;border:2px solid #fff;box-sizing:border-box;border-radius:4px;pointer-events:none}
