@@ -202,7 +202,7 @@ export function pickAim(e) {
   const r = c.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera); plane.constant = -S.cfg.dist;
   if (!ray.ray.intersectPlane(plane, pt)) return null;
-  return { x: clamp(-pt.x, -5.2, 5.2), y: clamp(pt.y, 0, 3.8) };
+  return { x: clamp(-pt.x, -8, 8), y: clamp(pt.y, 0, 4.5) };
 }
 
 // ----- Gambar tiap frame -----
@@ -215,19 +215,29 @@ export function draw() {
   const n = Math.hypot(cfg.x, D), dir = { x: -cfg.x / n, z: D / n }, perp = { x: dir.z, z: -dir.x }, yaw = Math.atan2(-dir.x, dir.z);
   const flying = phase === 'fly' && shot;
 
-  // kamera: di belakang bola, tinggi, menghadap gawang
-  camera.position.set(-(cfg.x - dir.x * cam.back), cam.h, -dir.z * cam.back);
-  camera.lookAt(-(cfg.x + dir.x * cam.look), .3, dir.z * cam.look);
+  // arah tendangan mengikuti bidikan; penendang berputar di sekitar bola sesuai kaki kuatnya
+  const sd = tk.foot === 'left' ? 1 : -1;                                   // sisi penendang terhadap bola
+  const kx0 = aim.x - cfg.x, kn = Math.hypot(kx0, D), kd = { x: kx0 / kn, z: D / kn }, kp = { x: kd.z, z: -kd.x };
 
-  // penendang di kiri-belakang bola, ayunan kaki saat menendang
-  let adv = 0, rr = 0, rl = 0;
+  // kamera di belakang bola, bergeser ke sisi penendang (sudut pandang penendang)
+  const cs = sd * .6;
+  camera.position.set(-(cfg.x - dir.x * cam.back + perp.x * cs), cam.h, -dir.z * cam.back + perp.z * cs);
+  camera.lookAt(-(cfg.x + dir.x * cam.look + perp.x * cs), .3, dir.z * cam.look + perp.z * cs);
+
+  // langkah, ayunan, dan kontak kaki dengan bola tepat saat t = 0
+  let p = 0, rk = 0, ro = 0;
   if (flying) {
-    if (t < 0) { const p = clamp((t + .3) / .3, 0, 1); adv = .55 * p; rr = .9 * p }
-    else { adv = .55; const q = clamp(t / .12, 0, 1); rr = t > .4 ? -1.1 * (1 - clamp((t - .4) / .5, 0, 1)) : .9 - 2 * q; rl = -.2 }
+    if (t < -.1) { const q = clamp((t + .3) / .2, 0, 1); p = .6 * q; rk = .9 * q }
+    else if (t < 0) { const q = (t + .1) / .1; p = .6 + .4 * q; rk = .9 - 1.2 * q }
+    else { p = 1; rk = t < .4 ? -.3 - .8 * clamp(t / .12, 0, 1) : -1.1 * (1 - clamp((t - .4) / .5, 0, 1)) }
+    ro = .05;
   }
-  taker.position.set(-(cfg.x - dir.x * (1 - adv) - perp.x * .95), 0, -dir.z * (1 - adv) - perp.z * .95); taker.rotation.y = yaw;
-  taker.userData.legR.rotation.x = rr; taker.userData.legL.rotation.x = rl;
-  taker.userData.armL.rotation.x = -rr * .5; taker.userData.armR.rotation.x = rr * .5;
+  const back = 1.1 - .78 * p, lat = sd * (.55 - .45 * p), U = taker.userData;
+  taker.position.set(-(cfg.x - kd.x * back + kp.x * lat), 0, -kd.z * back + kp.z * lat);
+  taker.rotation.y = Math.atan2(-kd.x, kd.z);
+  const kick = tk.foot === 'left' ? U.legR : U.legL, plant = kick === U.legL ? U.legR : U.legL;   // legL = sisi kanan model (x lokal negatif)
+  kick.rotation.x = rk; plant.rotation.x = ro;
+  U.armL.rotation.x = -rk * .5; U.armR.rotation.x = rk * .5;
 
   // pagar betis menghadap bola, melompat
   const jy = flying ? jump(Math.max(0, t)) : 0;
