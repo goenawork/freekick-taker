@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Freekick Taker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head><body>
+<div id="app">
+<canvas id="c" width="480" height="720"></canvas>
+<div id="hud" hidden>
+ <div id="top"><span id="info"></span><button class="btn ghost" id="bBack">Menu</button></div>
+ <div id="ctl">
+  <div class="row" style="justify-content:space-between"><b id="tkName"></b><span id="hint">Sentuh gawang untuk membidik</span></div>
+  <label>Lengkung <input type="range" id="curve" min="-100" max="100" value="0"></label>
+  <div id="meter"><i></i></div>
+  <button class="btn" id="bKick">Tendang</button>
+ </div>
+</div>
+
+<div class="screen" id="menu">
+ <div style="margin-top:auto"><h1>Freekick<br>Taker</h1><p class="sub">Bidik, atur lengkungan, tendang melewati pagar betis.</p><p id="err"></p></div>
+ <button class="btn" id="mMission">Mode Misi</button>
+ <button class="btn ghost" id="mFree">Mode Bebas</button>
+ <button class="btn ghost" id="mTaker">Pilih Taker: <span id="curTk"></span></button>
+</div>
+
+<div class="screen" id="levels" hidden><h2>Pilih Misi</h2><div id="lvList" class="list"></div><button class="btn ghost" data-go="menu">Kembali</button></div>
+<div class="screen" id="takers" hidden><h2>Pilih Taker</h2><div id="tkList" class="list"></div><button class="btn ghost" data-go="menu">Kembali</button></div>
+
+<div class="screen" id="free" hidden>
+ <h2>Mode Bebas</h2><p class="sub">Sentuh lapangan untuk menentukan titik tendangan.</p>
+ <canvas id="map" width="320" height="300"></canvas>
+ <label class="row">Pagar betis <input type="range" id="fWall" min="0" max="6" value="3"> <b id="fWallV">3</b></label>
+ <label class="row"><input type="checkbox" id="fKeeper" checked> Pakai kiper</label>
+ <label class="row">Level kiper <input type="range" id="fSkill" min="20" max="90" value="55"></label>
+ <div class="row"><button class="btn" id="fStart">Mulai latihan</button><button class="btn ghost" data-go="menu">Kembali</button></div>
+</div>
+
+<div class="screen" id="end" hidden>
+ <h1 id="eTitle"></h1><p id="eDesc" class="sub"></p>
+ <button class="btn" id="eNext">Level berikutnya</button><button class="btn ghost" id="eRetry">Ulangi</button><button class="btn ghost" data-go="menu">Menu</button>
+</div>
+</div>
+<script type="module" src="js/game.js"></script>
+</body></html>
