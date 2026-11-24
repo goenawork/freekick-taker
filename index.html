@@ -2,12 +2,13 @@
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Freekick Taker</title>
-<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head><body>
 <div id="app">
-<canvas id="c" width="240" height="360"></canvas>
+<canvas id="c"></canvas>
 <div id="hud" hidden>
+ <div id="msg"></div>
  <div id="top"><span id="info"></span><button class="btn ghost" id="bBack">Menu</button></div>
  <div id="ctl">
   <div class="row" style="justify-content:space-between"><b id="tkName"></b><span id="hint">Sentuh gawang untuk membidik</span></div>
@@ -41,5 +42,6 @@
  <button class="btn" id="eNext">Level berikutnya</button><button class="btn ghost" id="eRetry">Ulangi</button><button class="btn ghost" data-go="menu">Menu</button>
 </div>
 </div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module" src="js/game.js"></script>
 </body></html>
