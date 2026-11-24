@@ -1,0 +1,8 @@
+[
+{"t":"Gawang Kosong","d":"Tanpa kiper dan pagar. Rasakan tendangannya.","dist":18,"x":0,"wall":0,"keeper":0,"skill":0,"shots":3,"need":2},
+{"t":"Kiper Saja","d":"Kiper berjaga. Tempatkan bola jauh dari jangkauannya.","dist":20,"x":0,"wall":0,"keeper":1,"skill":0.35,"shots":5,"need":2},
+{"t":"Satu Pagar","d":"Satu pemain menghadang. Lengkungkan atau angkat bolanya.","dist":20,"x":-2,"wall":1,"keeper":1,"skill":0.45,"shots":5,"need":2},
+{"t":"Tiga Pagar","d":"Tembok lebih rapat dari sudut miring.","dist":22,"x":4,"wall":3,"keeper":1,"skill":0.55,"shots":5,"need":2,"pr":0.3},
+{"t":"Pagar Melompat","d":"Lima pemain, dan mereka melompat.","dist":23,"x":-7,"wall":5,"jump":1,"keeper":1,"skill":0.65,"shots":5,"need":2,"pr":0.5},
+{"t":"Final","d":"Enam pagar, kiper tajam, sudut sempit.","dist":25,"x":10,"wall":6,"jump":1,"keeper":1,"skill":0.8,"shots":5,"need":2,"pr":0.8}
+]
