@@ -124,10 +124,12 @@ function build() {
 }
 
 // ----- Ukuran dan input -----
+const cam = { back: 6.5, h: 2.4, look: 8 };   // jarak kamera menyesuaikan rasio layar
 let W = 0, H = 0;
 function resize() {
   const w = c.clientWidth, h = c.clientHeight; if (w === W && h === H || !w || !h) return; W = w; H = h;
   renderer.setSize(w, h, false); camera.aspect = w / h;
+  const tt = clamp((1.6 - camera.aspect) / 1.05, 0, 1); cam.back = 6.5 + 3 * tt; cam.h = 2.4 + 1.2 * tt; cam.look = 8 + 2 * tt;
   camera.fov = THREE.MathUtils.radToDeg(clamp(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(37.5)) / camera.aspect), .7, 1.25)); camera.updateProjectionMatrix();
 }
 const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), pt = new THREE.Vector3(), ndc = new THREE.Vector2();
@@ -149,8 +151,8 @@ export function draw() {
   const flying = phase === 'fly' && shot;
 
   // kamera: di belakang bola, tinggi, menghadap gawang
-  camera.position.set(-(cfg.x - dir.x * 6.5), 2.4, -dir.z * 6.5);
-  camera.lookAt(-(cfg.x + dir.x * 8), .3, dir.z * 8);
+  camera.position.set(-(cfg.x - dir.x * cam.back), cam.h, -dir.z * cam.back);
+  camera.lookAt(-(cfg.x + dir.x * cam.look), .3, dir.z * cam.look);
 
   // penendang di kiri-belakang bola, ayunan kaki saat menendang
   let adv = 0, rr = 0, rl = 0;
