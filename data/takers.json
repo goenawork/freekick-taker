@@ -1,6 +1,6 @@
 [
-{"id":"t1","name":"Bima Arsenio","power":78,"accuracy":72,"curve":85,"dip":60,"composure":70},
-{"id":"t2","name":"Raka Dirgantara","power":92,"accuracy":58,"curve":55,"dip":70,"composure":60},
-{"id":"t3","name":"Satria Wiratama","power":65,"accuracy":90,"curve":70,"dip":55,"composure":85},
-{"id":"t4","name":"Dewa Mahendra","power":70,"accuracy":65,"curve":95,"dip":85,"composure":65}
+{"id":"t1","name":"Aang Gunawan","power":89,"accuracy":97,"curve":96,"dip":80,"composure":89},
+{"id":"t2","name":"Florian Wirtz","power":92,"accuracy":98,"curve":95,"dip":90,"composure":92},
+{"id":"t3","name":"Dominik Szoboszlai","power":99,"accuracy":84,"curve":70,"dip":75,"composure":85},
+{"id":"t4","name":"Steven Gerrard","power":99,"accuracy":96,"curve":70,"dip":85,"composure":89}
 ]
