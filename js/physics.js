@@ -36,7 +36,7 @@ export function makeShot(pw, curveVal) {
 
 // Posisi bola pada waktu t (termasuk setelah berhenti)
 export function ballPos(shot, t) {
-  const D = S.cfg.dist, p = shot.P(Math.min(t, shot.stop));
+  const D = S.cfg.dist, p = shot.P(Math.max(0, Math.min(t, shot.stop)));
   if (t > shot.stop) {
     const d = t - shot.stop;
     if (shot.out === 'goal') { p.z = D + Math.min(d * 5, 1.5); p.y = Math.max(0, p.y - d * 4) }
