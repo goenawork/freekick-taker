@@ -111,11 +111,76 @@ function buildGoal(D) {
   return g;
 }
 
+// ----- Stadion: tribun, supporter, papan iklan polos (tanpa sponsor) -----
+const NT = 12, TD = .95, TH = .7, topOf = i => .6 + i * TH;
+let crowd = null, flashSlot = -1; const flashes = [];
+function rng(seed) { let q = seed; return () => (q = q * 16807 % 2147483647) / 2147483647 }
+const glowTex = canvasTex(64, 64, g => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,244,200,1)'); gr.addColorStop(1, 'rgba(255,244,200,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64) });
+const boardTex = canvasTex(64, 16, g => { g.fillStyle = '#12303f'; g.fillRect(0, 0, 32, 16); g.fillStyle = '#1f566e'; g.fillRect(32, 0, 32, 16) });
+
+function buildStadium(D) {
+  const g = new THREE.Group(), rnd = rng(11), conc = mat('#56626e', .95), seats = [];
+  const zEnd = D + 8, zSide0 = -14, zLen = zEnd - zSide0;
+  const tier = (w, h, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), conc); m.position.set(x, y, z); g.add(m) };
+  for (let i = 0; i < NT; i++) {
+    const top = topOf(i), zc = zEnd + i * TD + TD / 2;
+    tier(112, top, TD, 0, top / 2, zc);                                                   // tribun belakang gawang
+    for (const sd of [-1, 1]) tier(TD, top, zLen, sd * (40 + i * TD + TD / 2), top / 2, zSide0 + zLen / 2);   // tribun samping
+    for (let x = -54; x <= 54; x += .7) seats.push([x, top, zc, 0]);
+    for (const sd of [-1, 1]) for (let z = zSide0; z < zEnd; z += .7) seats.push([sd * (40 + i * TD + TD / 2), top, z, 1]);
+  }
+  // supporter (instancing agar ringan)
+  const n = seats.length, col = new THREE.Color();
+  const bodies = new THREE.InstancedMesh(new THREE.BoxGeometry(.42, .55, .28), new THREE.MeshStandardMaterial({ roughness: .9 }), n);
+  const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(.12, 5, 4), new THREE.MeshStandardMaterial({ roughness: .8 }), n);
+  const A = ['#e4412f', '#f4f1e6', '#2f6bff'], extra = ['#ffc94d', '#1a1a22', '#7ddc6f', '#8a8f98'], skin = ['#d9a47c', '#b57a52', '#8a5a3a', '#f0c8a0'];
+  const px = new Float32Array(n), py = new Float32Array(n), pz = new Float32Array(n), ph = new Float32Array(n);
+  seats.forEach((st, k) => {
+    px[k] = st[0]; py[k] = st[1]; pz[k] = st[2]; ph[k] = rnd() * 6.28;
+    const zone = (st[3] ? Math.floor((st[2] - zSide0) / 14) : Math.floor((st[0] + 54) / 36)) % 3;
+    bodies.setColorAt(k, col.set(rnd() < .7 ? A[zone] : extra[Math.floor(rnd() * 4)]));
+    heads.setColorAt(k, col.set(skin[Math.floor(rnd() * 4)]));
+  });
+  [bodies, heads].forEach(m => { m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; g.add(m) });
+  crowd = { bodies, heads, px, py, pz, ph, n, m: new THREE.Matrix4(), f: 0 }; animateCrowd(0, 0, true);
+  // papan iklan polos
+  const board = (len, x, z, side) => {
+    const t = boardTex.clone(); t.wrapS = THREE.RepeatWrapping; t.repeat.set(len / 8, 1); t.needsUpdate = true;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(side ? .15 : len, .9, side ? len : .15), new THREE.MeshStandardMaterial({ map: t, roughness: .6, emissive: 0x0a2a38 }));
+    m.position.set(x, .45, z); g.add(m);
+  };
+  board(112, 0, D + 6.5, false); board(D + 20.5, -37.5, (D - 7.5) / 2, true); board(D + 20.5, 37.5, (D - 7.5) / 2, true);
+  // atap dan lampu sorot
+  const top = topOf(NT - 1);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(112, .4, 9), mat('#1b232b', .9)); roof.position.set(0, top + 4, D + 17.5); g.add(roof);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(112, .3, .3), new THREE.MeshBasicMaterial({ color: 0xfff1c9 })); bar.position.set(0, top + 3.7, D + 13); g.add(bar);
+  const glow = new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false });
+  for (const x of [-45, -30, -15, 0, 15, 30, 45]) { const s = new THREE.Sprite(glow); s.scale.setScalar(8); s.position.set(x, top + 3.5, D + 12.8); g.add(s) }
+  // blitz kamera penonton
+  flashes.length = 0;
+  for (let i = 0; i < 14; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false })); s.scale.setScalar(1.2); s.visible = false; g.add(s); flashes.push(s) }
+  return g;
+}
+function animateCrowd(now, amp, force) {
+  const q = crowd; if (!q || (!force && (++q.f % 2))) return;
+  const sp = amp > .1 ? 9 : 1.6, a = amp > .1 ? amp : .05;
+  for (let i = 0; i < q.n; i++) {
+    const y = q.py[i] + a * Math.max(0, Math.sin(now / 1000 * sp + q.ph[i]));
+    q.m.makeTranslation(q.px[i], y + .28, q.pz[i]); q.bodies.setMatrixAt(i, q.m);
+    q.m.makeTranslation(q.px[i], y + .68, q.pz[i]); q.heads.setMatrixAt(i, q.m);
+  }
+  q.bodies.instanceMatrix.needsUpdate = true; q.heads.instanceMatrix.needsUpdate = true;
+}
+function updateFlashes(now, excited) {
+  const slot = Math.floor(now / 110); if (!crowd || slot === flashSlot) return; flashSlot = slot;
+  flashes.forEach(s => { const on = Math.random() < (excited ? .6 : .22); s.visible = on; if (on) { const k = Math.floor(Math.random() * crowd.n); s.position.set(crowd.px[k], crowd.py[k] + 1, crowd.pz[k]) } });
+}
+
 let key = '', dyn = null, taker = null, keeperW = null, keeper = null, wallP = [];
 function build() {
   const { cfg, tk } = S, D = cfg.dist;
   if (dyn) scene.remove(dyn);
-  dyn = new THREE.Group(); scene.add(dyn); dyn.add(buildField(D), buildGoal(D));
+  dyn = new THREE.Group(); scene.add(dyn); dyn.add(buildField(D), buildGoal(D), buildStadium(D));
   wallP = []; for (let i = 0; i < cfg.wall; i++) { const p = player({ kit: '#2f6bff' }); p.userData.armL.rotation.set(-.9, 0, .35); p.userData.armR.rotation.set(-.9, 0, -.35); dyn.add(p); wallP.push(p) }
   keeper = keeperW = null;
   if (cfg.keeper) { keeper = player({ kit: '#c6f432', shorts: '#1a1a22', gloves: '#ffffff', h: 1.95 }); keeperW = new THREE.Group(); keeperW.add(keeper); dyn.add(keeperW) }
@@ -185,6 +250,10 @@ export function draw() {
   // pesan hasil
   const txt = flying && t >= shot.stop * .98 ? shot.msg : '';
   if (txt !== lastMsg) { lastMsg = txt; msgEl.textContent = txt; msgEl.className = txt && shot.out === 'goal' ? 'goal' : '' }
+
+  // supporter bersorak saat gol
+  const now = S.now || 0, cheer = flying && shot.out === 'goal' && t > shot.stop;
+  animateCrowd(now, cheer ? .35 : 0); updateFlashes(now, cheer);
 
   renderer.render(scene, camera);
 }
